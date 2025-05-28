@@ -1,0 +1,91 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-demo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  # Source configuration
+  source:
+    # CHANGE THIS: Replace with your actual Git repository URL
+    repoURL: https://github.com/ignacio-hernani/vault-argo-cd-demo
+    targetRevision: HEAD
+    path: demo-app/manifests
+    
+    # Use the Vault plugin for secret injection
+    plugin:
+      name: argocd-vault-plugin
+      env:
+        - name: VAULT_ADDR
+          value: "http://host.minikube.internal:8200"
+        - name: AVP_TYPE
+          value: "vault"
+        - name: AVP_AUTH_TYPE
+          value: "token"
+        - name: VAULT_TOKEN
+          value: "root"  # In production, use proper authentication!
+  
+  # Destination configuration
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  
+  # Sync policy
+  syncPolicy:
+    automated:
+      prune: true      # Remove resources when they're removed from Git
+      selfHeal: true   # Automatically sync when cluster state drifts
+    syncOptions:
+      - CreateNamespace=true  # Create namespace if it doesn't exist
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+---
+# Alternative: Manual sync application (no automated sync)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-demo-manual
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    # CHANGE THIS: Replace with your actual Git repository URL
+    repoURL: https://github.com/ignacio-hernani/vault-argo-cd-demo
+    targetRevision: HEAD
+    path: demo-app/manifests
+    
+    plugin:
+      name: argocd-vault-plugin
+      env:
+        - name: VAULT_ADDR
+          value: "http://host.minikube.internal:8200"
+        - name: AVP_TYPE
+          value: "vault"
+        - name: AVP_AUTH_TYPE
+          value: "token"
+        - name: VAULT_TOKEN
+          value: "root"
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  
+  # Manual sync - you control when deployments happen
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+``` 

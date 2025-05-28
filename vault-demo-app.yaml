@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-demo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/ignacio-hernani/vault-argo-cd-demo
+    targetRevision: HEAD
+    path: demo-app/manifests
+    
+    plugin:
+      name: argocd-vault-plugin
+      env:
+        - name: VAULT_ADDR
+          value: "http://host.minikube.internal:8200"
+        - name: AVP_TYPE
+          value: "vault"
+        - name: AVP_AUTH_TYPE
+          value: "token"
+        - name: VAULT_TOKEN
+          value: "root"
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
