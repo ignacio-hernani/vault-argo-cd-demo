@@ -15,5 +15,3 @@ debug-logs/
 # IDE files
 .vscode/
 
-# PDF files
-*.pdf
