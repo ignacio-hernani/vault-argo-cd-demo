@@ -177,19 +177,50 @@ else
 fi
 
 print_step "9. Demonstrating Secret Updates"
-print_info "Updating a secret in Vault to demonstrate dynamic capabilities..."
+print_info "Now let's demonstrate how to update secrets in Vault dynamically."
+echo ""
 
-# Update a secret
+# Get current secret values to preserve them
+print_info "Current database secret in Vault:"
+vault kv get -format=table secret/myapp/database
+echo ""
+
+# Get existing values to preserve password, host, and port
+CURRENT_PASSWORD=$(vault kv get -field=password secret/myapp/database)
+CURRENT_HOST=$(vault kv get -field=host secret/myapp/database)
+CURRENT_PORT=$(vault kv get -field=port secret/myapp/database)
+CURRENT_USERNAME=$(vault kv get -field=username secret/myapp/database)
+
+print_warning "Current username: $CURRENT_USERNAME"
+echo ""
+print_info "Let's update the database username interactively..."
+echo ""
+
+# Prompt for new username
+echo -n "Enter new username for the database secret: "
+read NEW_USERNAME
+
+# Validate input
+if [ -z "$NEW_USERNAME" ]; then
+    print_warning "No username provided. Using 'demo-user' as default."
+    NEW_USERNAME="demo-user"
+fi
+
+print_info "Updating secret with new username: $NEW_USERNAME"
+
+# Update the secret with new username but preserve other values
 vault kv put secret/myapp/database \
-    username="updated-user" \
-    password="new-super-secret-456" \
-    host="new-db.example.com" \
-    port="5432"
+    username="$NEW_USERNAME" \
+    password="$CURRENT_PASSWORD" \
+    host="$CURRENT_HOST" \
+    port="$CURRENT_PORT"
 
-print_success "Secret updated in Vault successfully"
+print_success "Secret updated in Vault successfully!"
+echo ""
 print_info "Updated database secret:"
 vault kv get -format=table secret/myapp/database
 
+echo ""
 print_warning "In a production GitOps workflow, the process would be:"
 echo "1. Update your application manifests in Git repository"
 echo "2. Argo CD would detect the change and initiate redeployment"
