@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Vault + ArgoCD Integration Demo Setup Script
-# This script automates the setup process described in the README
+# This script automates the complete setup process
 
 set -e  # Exit on any error
 
@@ -35,6 +35,12 @@ print_error() {
 # Check prerequisites
 print_status "Checking prerequisites..."
 
+# Check if git is installed
+if ! command -v git &> /dev/null; then
+    print_error "Git is not installed. Please install git first."
+    exit 1
+fi
+
 # Check if Docker is running
 if ! docker info >/dev/null 2>&1; then
     print_error "Docker is not running. Please start Docker Desktop and try again."
@@ -49,6 +55,82 @@ if [ ! -f "vault.hclic" ]; then
 fi
 
 print_success "Prerequisites check passed"
+
+# Step 0: GitHub Repository Setup
+print_status "Step 0: Setting up GitHub repository..."
+
+# Check if we're already in a git repository
+if [ -d ".git" ]; then
+    print_success "Already in a git repository"
+    REPO_URL=$(git remote get-url origin 2>/dev/null || echo "")
+    if [ -n "$REPO_URL" ]; then
+        print_status "Current repository: $REPO_URL"
+    else
+        print_warning "No remote origin set"
+        # Get repository URL from user
+        echo ""
+        print_status "Please provide your GitHub repository URL:"
+        echo "Examples:"
+        echo "  https://github.com/username/vault-argo-cd-demo"
+        echo "  git@github.com:username/vault-argo-cd-demo.git"
+        echo ""
+        read -p "Repository URL: " REPO_URL
+        
+        if [ -z "$REPO_URL" ]; then
+            print_error "Repository URL is required for GitOps workflow"
+            exit 1
+        fi
+        
+        print_status "Adding remote origin..."
+        git remote add origin "$REPO_URL"
+    fi
+else
+    print_status "Initializing git repository..."
+    git init
+    print_success "Git repository initialized"
+    
+    # Get repository URL from user
+    echo ""
+    print_status "Please provide your GitHub repository URL:"
+    echo "Examples:"
+    echo "  https://github.com/username/vault-argo-cd-demo"
+    echo "  git@github.com:username/vault-argo-cd-demo.git"
+    echo ""
+    read -p "Repository URL: " REPO_URL
+    
+    if [ -z "$REPO_URL" ]; then
+        print_error "Repository URL is required for GitOps workflow"
+        exit 1
+    fi
+    
+    print_status "Adding remote origin..."
+    git remote add origin "$REPO_URL"
+fi
+
+# Create .gitignore if it doesn't exist
+if [ ! -f ".gitignore" ]; then
+    print_status "Creating .gitignore..."
+    cat > .gitignore << 'EOF'
+# Demo generated files
+argocd-values.yaml
+debug-logs/
+
+# Vault license (NEVER commit this!)
+vault.hclic
+
+# macOS
+.DS_Store
+
+# Temporary files
+*.tmp
+/tmp/
+
+# IDE files
+.vscode/
+.idea/
+EOF
+    print_success ".gitignore created"
+fi
 
 # Step 1: Start Vault Enterprise
 print_status "Step 1: Initializing Vault Enterprise..."
@@ -404,26 +486,116 @@ EOF
 
 print_success "Demo application manifests created!"
 
+# Step 9: Update ArgoCD application template and create ready-to-use manifest
+print_status "Step 9: Configuring ArgoCD application for your repository..."
+
+# Update ArgoCD application template
+sed -i.bak "s|repoURL: https://github.com/ignacio-hernani/vault-argo-cd-demo|repoURL: $REPO_URL|g" argocd-application-template.yaml
+rm -f argocd-application-template.yaml.bak
+print_success "ArgoCD application template updated"
+
+# Create ready-to-use application manifest
+cat > vault-demo-app.yaml << EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-demo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  
+  source:
+    repoURL: $REPO_URL
+    targetRevision: HEAD
+    path: demo-app/manifests
+    
+    plugin:
+      name: argocd-vault-plugin
+      env:
+        - name: VAULT_ADDR
+          value: "http://host.minikube.internal:8200"
+        - name: AVP_TYPE
+          value: "vault"
+        - name: AVP_AUTH_TYPE
+          value: "token"
+        - name: VAULT_TOKEN
+          value: "root"
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+EOF
+
+print_success "ArgoCD application manifest created: vault-demo-app.yaml"
+
+# Step 10: Commit and push to GitHub
+print_status "Step 10: Committing and pushing to GitHub..."
+
+# Stage and commit all files
+print_status "Staging files for commit..."
+git add .
+
+# Check if there are changes to commit
+if git diff --staged --quiet; then
+    print_warning "No changes to commit"
+else
+    print_status "Committing files..."
+    git commit -m "Initial commit: Vault + ArgoCD integration demo
+
+- Complete demo setup with automated scripts
+- Comprehensive documentation and troubleshooting guides
+- ArgoCD Vault Plugin integration
+- Sample application with secret injection
+- Verification and cleanup scripts"
+    print_success "Files committed"
+fi
+
+# Push to GitHub
+print_status "Pushing to GitHub..."
+if git push -u origin main 2>/dev/null || git push -u origin master 2>/dev/null; then
+    print_success "Successfully pushed to GitHub!"
+else
+    print_warning "Push failed. You may need to:"
+    echo "1. Create the repository on GitHub first"
+    echo "2. Set up authentication (SSH keys or personal access token)"
+    echo "3. Run: git push -u origin main"
+fi
+
 # Get Argo CD admin password
 print_status "Retrieving Argo CD admin credentials..."
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 
 # Final instructions
 echo ""
-echo "Demo setup completed successfully"
-echo "================================"
+echo "Demo setup completed successfully!"
+echo "===================================="
 echo ""
+print_success "Your repository: $REPO_URL"
 print_success "Next steps:"
-echo "1. Access ArgoCD UI:"
+echo ""
+echo "1. Apply the ArgoCD application:"
+echo "   kubectl apply -f vault-demo-app.yaml"
+echo ""
+echo "2. Watch the application sync:"
+echo "   kubectl get applications -n argocd -w"
+echo ""
+echo "3. Access ArgoCD UI:"
 echo "   kubectl port-forward svc/argocd-server -n argocd 8080:443"
 echo "   Then open: https://localhost:8080"
 echo "   Username: admin"
 echo "   Password: $ARGOCD_PASSWORD"
 echo ""
-echo "2. Create an Argo CD application pointing to this repository"
-echo "3. Configure the application to use the 'argocd-vault-plugin'"
-echo "4. Set the source path to 'demo-app/manifests'"
+echo "4. Monitor the deployment:"
+echo "   kubectl get pods -n default -w"
 echo ""
-print_warning "Important: Commit and push the demo-app/ directory to your Git repository before creating the Argo CD application"
-echo ""
+print_warning "The demo will now pull manifests from your GitHub repository!"
 print_status "To clean up the environment later, run: ./cleanup-demo.sh" 

@@ -7,44 +7,30 @@ Welcome to the Vault + Argo CD integration demonstration. This guide provides ra
 - macOS with Docker Desktop running
 - Terminal access
 - Vault Enterprise license file (`vault.hclic`) in this directory
-- **GitHub account** (for proper GitOps workflow)
+- **GitHub account** and repository for proper GitOps workflow
 
-## Step 1: Run the Setup
+## Step 1: Run the Complete Setup
 
 ```bash
 ./setup-demo.sh
 ```
 
 **What this does:**
+- Sets up GitHub repository integration
 - Installs required tools (minikube, kubectl, helm)
 - Starts Vault Enterprise and creates sample secrets
 - Sets up a local Kubernetes cluster
 - Installs ArgoCD with the Vault plugin
 - Configures authentication between all components
 - Creates demonstration application manifests
+- Commits and pushes demo to your GitHub repository
+- Creates ready-to-use ArgoCD application manifest
 
 **Duration:** Approximately 5-10 minutes
 
-## Step 2: Configure GitHub Repository
+**Repository setup:** The script will prompt you for your GitHub repository URL and handle all Git configuration automatically.
 
-For a proper GitOps workflow, configure a GitHub repository:
-
-```bash
-./setup-github.sh
-```
-
-**Process overview:**
-- Creates/configures a Git repository
-- Pushes your demo to GitHub
-- Updates ArgoCD application to use your repository
-- Creates ready-to-use application manifest
-
-**Alternative approach:** Manual configuration:
-1. Create a new repository on GitHub
-2. Push this code to your repository
-3. Update the `repoURL` in `argocd-application-template.yaml`
-
-## Step 3: Verify Environment
+## Step 2: Verify Environment
 
 ```bash
 ./verify-setup.sh
@@ -55,7 +41,7 @@ For a proper GitOps workflow, configure a GitHub repository:
 - Network connectivity is functional
 - Vault plugin is properly configured
 
-## Step 4: Deploy the Application
+## Step 3: Deploy the Application
 
 ```bash
 # Apply the Argo CD application (uses your GitHub repository)
@@ -89,10 +75,10 @@ Destination:
 Plugin: argocd-vault-plugin
 ```
 
-## Step 5: Execute Demo Workflow
+## Step 4: Execute Demo Workflow
 
 ```bash
-./demo-workflow.sh
+./demo.sh
 ```
 
 **Demo includes:**
@@ -101,7 +87,7 @@ Plugin: argocd-vault-plugin
 - How the Vault plugin injects secrets
 - The complete GitOps workflow
 
-## Step 6: Access the UIs
+## Step 5: Access the UIs
 
 ### Argo CD Dashboard
 ```bash
@@ -121,7 +107,7 @@ minikube service vault-demo-app --url
 # Open the URL in your browser to observe secret injection
 ```
 
-## Step 7: Experiment with the Integration
+## Step 6: Experiment with the Integration
 
 Execute these commands to observe the integration in action:
 
