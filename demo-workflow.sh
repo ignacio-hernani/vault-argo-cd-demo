@@ -29,19 +29,30 @@ print_success() {
     echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
 print_warning() {
     echo -e "${YELLOW}[DEMO]${NC} $1"
 }
 
-# Check if setup is complete
-print_step "1. Verifying Demo Environment"
-if ! ./verify-setup.sh >/dev/null 2>&1; then
-    echo "Demo environment is not properly configured. Please execute './setup-demo.sh' first."
+# Ensure demo environment is ready
+print_step "1. Ensuring Demo Environment is Ready"
+print_info "Running setup verification and configuration..."
+echo ""
+
+# Call setup-demo.sh which will quickly verify and configure only if needed
+if ! ./setup-demo.sh; then
+    echo ""
+    print_error "Failed to prepare demo environment. Please check the setup output above."
     exit 1
 fi
-print_success "Demo environment verification completed"
 
-# Set Vault environment
+echo ""
+print_success "Demo environment is ready!"
+
+# Set Vault environment variables for the demo
 export VAULT_ADDR="http://127.0.0.1:8200"
 export VAULT_TOKEN="root"
 
@@ -72,8 +83,12 @@ print_step "5. Creating Argo CD Application (if not exists)"
 if ! kubectl get application vault-demo -n argocd >/dev/null 2>&1; then
     print_info "Creating Argo CD application..."
     
-    # Create a local application manifest
-    cat > /tmp/vault-demo-app.yaml << EOF
+    # Use the vault-demo-app.yaml created by setup-demo.sh
+    if [ -f "vault-demo-app.yaml" ]; then
+        kubectl apply -f vault-demo-app.yaml
+    else
+        # Fallback: create a basic application manifest
+        cat > /tmp/vault-demo-app.yaml << EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -97,8 +112,9 @@ spec:
     syncOptions:
     - CreateNamespace=true
 EOF
+        kubectl apply -f /tmp/vault-demo-app.yaml
+    fi
     
-    kubectl apply -f /tmp/vault-demo-app.yaml
     print_success "Argo CD application created successfully"
     
     print_info "Waiting for application synchronization..."

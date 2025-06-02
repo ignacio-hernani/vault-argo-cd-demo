@@ -1,14 +1,16 @@
 # Troubleshooting Guide
 
-This guide helps you resolve common issues with the Vault + ArgoCD integration demo.
+This guide covers common issues and their solutions for the Vault + Argo CD integration demo.
 
-## Quick Diagnostics 🩺
+## Quick Diagnostics
 
-First, run the verification script to identify issues:
+If you're experiencing issues, start with these diagnostic steps:
 
 ```bash
-./verify-setup.sh
+./setup-demo.sh  # This will verify and fix any configuration issues
 ```
+
+The setup script now includes comprehensive verification and will automatically detect and fix most common issues.
 
 ## Common Issues and Solutions 🛠️
 
@@ -375,7 +377,7 @@ sleep 5
 If you're still having issues:
 
 1. **Check the logs** using the commands above
-2. **Run the verification script**: `./verify-setup.sh`
+2. **Run the setup script**: `./setup-demo.sh` (it includes verification and will identify and fix issues)
 3. **Review error messages** carefully
 4. **Check system resources** (CPU, memory, disk space)
 5. **Restart Docker Desktop** if needed

@@ -7,7 +7,7 @@ Welcome to the Vault + Argo CD integration demonstration. This guide provides ra
 - macOS with Docker Desktop running
 - Terminal access
 - Vault Enterprise license file (`vault.hclic`) in this directory
-- **GitHub account** and repository for proper GitOps workflow
+- GitHub account and repository for proper GitOps workflow
 
 ## Step 1: Run the Complete Setup
 
@@ -16,6 +16,7 @@ Welcome to the Vault + Argo CD integration demonstration. This guide provides ra
 ```
 
 **What this does:**
+This script verifies the current environment and identifies whether complete/partial/none setup needs to be performed. The complete setup is:
 - Sets up GitHub repository integration
 - Installs required tools (minikube, kubectl, helm)
 - Starts Vault Enterprise and creates sample secrets
@@ -26,22 +27,11 @@ Welcome to the Vault + Argo CD integration demonstration. This guide provides ra
 - Commits and pushes demo to your GitHub repository
 - Creates ready-to-use ArgoCD application manifest
 
-**Duration:** Approximately 5-10 minutes
+**Duration:** Approximately 5-10 minutes (or instant if already configured)
 
 **Repository setup:** The script will prompt you for your GitHub repository URL and handle all Git configuration automatically.
 
-## Step 2: Verify Environment
-
-```bash
-./verify-setup.sh
-```
-
-**Verification includes:**
-- All services are operational
-- Network connectivity is functional
-- Vault plugin is properly configured
-
-## Step 3: Deploy the Application
+## Step 2: Deploy the Application
 
 ```bash
 # Apply the Argo CD application (uses your GitHub repository)
@@ -75,19 +65,23 @@ Destination:
 Plugin: argocd-vault-plugin
 ```
 
-## Step 4: Execute Demo Workflow
+## Step 3: Execute Demo Workflow
 
 ```bash
-./demo.sh
+./demo-workflow.sh
 ```
 
-**Demo includes:**
-- How secrets are stored in Vault
-- How Argo CD deploys applications
-- How the Vault plugin injects secrets
-- The complete GitOps workflow
+**What this does:**
+- **Automatically ensures environment is ready** (calls setup-demo.sh if needed)
+- Demonstrates how secrets are stored in Vault
+- Shows how Argo CD deploys applications
+- Illustrates how the Vault plugin injects secrets
+- Walks through the complete GitOps workflow
+- Updates secrets in real-time to show dynamic capabilities
 
-## Step 5: Access the UIs
+**Note:** The demo workflow automatically verifies and sets up the environment, so you can run it directly even if you're unsure about the setup status.
+
+## Step 4: Access the UIs
 
 ### Argo CD Dashboard
 ```bash
@@ -107,7 +101,7 @@ minikube service vault-demo-app --url
 # Open the URL in your browser to observe secret injection
 ```
 
-## Step 6: Experiment with the Integration
+## Step 5: Experiment with the Integration
 
 Execute these commands to observe the integration in action:
 
@@ -136,6 +130,7 @@ kubectl get deployment vault-demo-app -o yaml | grep -A 10 env:
 ### Common Issues:
 
 **Argo CD cannot reach Vault:**
+- Re-run setup script: `./setup-demo.sh` (it will verify and fix issues)
 - Verify Vault status: `vault status`
 - Test minikube connectivity: `minikube ssh -- curl http://host.minikube.internal:8200/v1/sys/health`
 
@@ -146,6 +141,9 @@ kubectl get deployment vault-demo-app -o yaml | grep -A 10 env:
 **Secret injection failure:**
 - Verify Vault policies: `vault policy read argocd-policy`
 - Check Kubernetes authentication: `vault auth list`
+
+**Environment appears broken:**
+- Run the setup script again: `./setup-demo.sh` (it will identify and fix issues)
 
 ## Environment Cleanup
 
@@ -160,9 +158,8 @@ The Vault plugin intercepts `<path:...>` placeholders in your manifests and repl
 ## Support Resources
 
 - **Detailed documentation** → See `README.md`
-- **Troubleshooting** → See `TROUBLESHOOTING.md`  
-- **Demo overview** → See `DEMO_SUMMARY.md`
+- **Troubleshooting** → See `TROUBLESHOOTING.md`
 
 ---
 
-**That's it! You now have a working Vault + ArgoCD integration demo running locally. ** 
+**That's it! The setup script intelligently handles verification and configuration, making the demo experience seamless.** 
