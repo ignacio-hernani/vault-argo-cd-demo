@@ -282,7 +282,7 @@ if [ $NEEDS_SETUP -eq 0 ]; then
     echo "4. Monitor the deployment:"
     echo "   kubectl get pods -n default -w"
     echo ""
-    print_status "To clean up the environment, run: ./cleanup-demo.sh"
+    print_status "To clean up the environment, run: ./03-cleanup.sh"
     exit 0
 fi
 
@@ -888,4 +888,4 @@ echo "4. Monitor the deployment:"
 echo "   kubectl get pods -n default -w"
 echo ""
 print_warning "The demo will now pull manifests from your GitHub repository!"
-print_status "To clean up the environment later, run: ./cleanup-demo.sh" 
+print_status "To clean up the environment later, run: ./03-cleanup.sh" 

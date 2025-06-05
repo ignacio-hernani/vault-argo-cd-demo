@@ -42,8 +42,8 @@ print_step "1. Ensuring Demo Environment is Ready"
 print_info "Running setup verification and configuration..."
 echo ""
 
-# Call setup-demo.sh which will quickly verify and configure only if needed
-if ! ./setup-demo.sh; then
+# Call 01-setup.sh which will quickly verify and configure only if needed
+if ! ./01-setup.sh; then
     echo ""
     print_error "Failed to prepare demo environment. Please check the setup output above."
     exit 1
@@ -83,7 +83,7 @@ print_step "5. Creating Argo CD Application (if not exists)"
 if ! kubectl get application vault-demo -n argocd >/dev/null 2>&1; then
     print_info "Creating Argo CD application..."
     
-    # Use the vault-demo-app.yaml created by setup-demo.sh
+    # Use the vault-demo-app.yaml created by 01-setup.sh
     if [ -f "vault-demo-app.yaml" ]; then
         kubectl apply -f vault-demo-app.yaml
     else
@@ -248,4 +248,4 @@ echo "• View Argo CD applications: kubectl get applications -n argocd"
 echo "DEMO APP:"
 echo "• Monitor deployments: kubectl get pods -w"
 echo "• Access demo webapp (separate terminal): minikube service vault-demo-app --url"
-echo "• Clean up environment: ./cleanup-demo.sh" 
+echo "• Clean up environment: ./03-cleanup.sh" 

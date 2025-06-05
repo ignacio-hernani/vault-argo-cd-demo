@@ -12,7 +12,7 @@ Welcome to the Vault + Argo CD integration demonstration. This guide provides ra
 ## Step 1: Run the Complete Setup
 
 ```bash
-./setup-demo.sh
+./01-setup.sh
 ```
 
 **What this does:**
@@ -68,11 +68,11 @@ Plugin: argocd-vault-plugin
 ## Step 3: Execute Demo Workflow
 
 ```bash
-./demo-workflow.sh
+./02-demo.sh
 ```
 
 **What this does:**
-- **Automatically ensures environment is ready** (calls setup-demo.sh if needed)
+- **Automatically ensures environment is ready** (calls 01-setup.sh if needed)
 - Demonstrates how secrets are stored in Vault
 - Shows how Argo CD deploys applications
 - Illustrates how the Vault plugin injects secrets
@@ -130,7 +130,7 @@ kubectl get deployment vault-demo-app -o yaml | grep -A 10 env:
 ### Common Issues:
 
 **Argo CD cannot reach Vault:**
-- Re-run setup script: `./setup-demo.sh` (it will verify and fix issues)
+- Re-run setup script: `./01-setup.sh` (it will verify and fix issues)
 - Verify Vault status: `vault status`
 - Test minikube connectivity: `minikube ssh -- curl http://host.minikube.internal:8200/v1/sys/health`
 
@@ -143,14 +143,14 @@ kubectl get deployment vault-demo-app -o yaml | grep -A 10 env:
 - Check Kubernetes authentication: `vault auth list`
 
 **Environment appears broken:**
-- Run the setup script again: `./setup-demo.sh` (it will identify and fix issues)
+- Run the setup script again: `./01-setup.sh` (it will identify and fix issues)
 
 ## Environment Cleanup
 
 When you're done:
 
 ```bash
-./cleanup-demo.sh
+./03-cleanup.sh
 ```
 
 The Vault plugin intercepts `<path:...>` placeholders in your manifests and replaces them with actual secrets from Vault before applying to Kubernetes.

@@ -7,7 +7,7 @@ This guide covers common issues and their solutions for the Vault + Argo CD inte
 If you're experiencing issues, start with these diagnostic steps:
 
 ```bash
-./setup-demo.sh  # This will verify and fix any configuration issues
+./01-setup.sh  # This will verify and fix any configuration issues
 ```
 
 The setup script now includes comprehensive verification and will automatically detect and fix most common issues.
@@ -73,7 +73,7 @@ vault kv put secret/myapp/api \
 vault auth enable kubernetes
 
 # Configure it (run after Argo CD is installed)
-./setup-demo.sh  # This will reconfigure everything
+./01-setup.sh  # This will reconfigure everything
 ```
 
 ### 2. Minikube/Kubernetes Issues
@@ -163,7 +163,7 @@ minikube start --driver=docker --cpus=2 --memory=4096
 kubectl create namespace argocd
 
 # Run the setup script to install Argo CD
-./setup-demo.sh
+./01-setup.sh
 ```
 
 #### "Argo CD pods are not running"
@@ -363,13 +363,13 @@ If all troubleshooting steps fail, completely reset the demonstration environmen
 
 ```bash
 # Clean up everything
-./cleanup-demo.sh
+./03-cleanup.sh
 
 # Wait for cleanup completion
 sleep 5
 
 # Start fresh
-./setup-demo.sh
+./01-setup.sh
 ```
 
 ## Support Information
@@ -377,7 +377,7 @@ sleep 5
 If you're still having issues:
 
 1. **Check the logs** using the commands above
-2. **Run the setup script**: `./setup-demo.sh` (it includes verification and will identify and fix issues)
+2. **Run the setup script**: `./01-setup.sh` (it includes verification and will identify and fix issues)
 3. **Review error messages** carefully
 4. **Check system resources** (CPU, memory, disk space)
 5. **Restart Docker Desktop** if needed
