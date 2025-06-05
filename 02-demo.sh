@@ -237,7 +237,7 @@ print_info "Useful commands for further exploration:"
 echo "VAULT:"
 echo "• Check Vault secrets for myapp: vault kv list secret/myapp"
 echo "• Check current username of the database secret: vault kv get -field=username secret/myapp/database"
-echo "• Update Vault secret: vault kv put secret/myapp/database username="demo-user""
+echo "• Update Vault secret: vault kv patch secret/myapp/database username="demo-user""
 echo "ARGO CD:"
 ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d 2>/dev/null || echo "Password not found")
 echo "• Port-forward ArgoCD (separate terminal): kubectl port-forward svc/argocd-server -n argocd 8080:443"
